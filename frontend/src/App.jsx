@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { healthCheck } from './api'
+import Onboarding         from './components/Onboarding'
 import Overview           from './components/Overview'
 import ETLWizard          from './components/ETLWizard'
 import RiskTable          from './components/RiskTable'
@@ -59,10 +60,10 @@ const NAV = [
 ]
 
 export default function App() {
+  const [showDashboard, setShowDashboard] = useState(false)
   const [activePage, setActivePage] = useState('overview')
-  const [apiStatus, setApiStatus]   = useState('connecting') // 'ok' | 'error' | 'connecting'
+  const [apiStatus, setApiStatus]   = useState('connecting')
   const [apiInfo,   setApiInfo]     = useState(null)
-  // Shared state — account_id yang dipilih dari RiskTable
   const [selectedAccount, setSelectedAccount] = useState(null)
 
   // ── Cek koneksi API saat startup ─────────────────────────────
@@ -119,6 +120,10 @@ export default function App() {
       case 'insights': return <StrategicInsights />
       default:          return <Placeholder name={activePage} />
     }
+  }
+
+  if (!showDashboard) {
+    return <Onboarding onEnterDashboard={() => setShowDashboard(true)} />
   }
 
   return (
