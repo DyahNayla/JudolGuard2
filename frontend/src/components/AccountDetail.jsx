@@ -6,10 +6,10 @@ import {
 } from 'recharts'
 
 const PROFILE_LABELS = {
-  normal:        { label: 'Normal',        icon: '😊', color: '#22c55e' },
-  early_stage:   { label: 'Early Stage',   icon: '⚠️', color: '#eab308' },
-  escalating:    { label: 'Escalating',    icon: '📈', color: '#f97316' },
-  heavy_gambler: { label: 'Heavy Gambler', icon: '🎰', color: '#ef4444' },
+  normal:        { label: 'Normal',        color: '#22c55e' },
+  early_stage:   { label: 'Early Stage',   color: '#eab308' },
+  escalating:    { label: 'Escalating',    color: '#f97316' },
+  heavy_gambler: { label: 'Heavy Gambler', color: '#ef4444' },
 }
 
 function StatCard({ label, value, sub, color }) {
@@ -29,7 +29,6 @@ function StatCard({ label, value, sub, color }) {
   )
 }
 
-// Custom tooltip untuk line chart
 const ChartTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   return (
@@ -65,8 +64,8 @@ export default function AccountDetail({ accountId, onBack }) {
 
   if (!accountId) return (
     <div className="empty-state fade-in">
-      <div className="icon">🔍</div>
-      <p>Pilih akun dari Risk Table untuk melihat detail</p>
+      <div className="icon" style={{ fontSize: '2.5rem' }}>—</div>
+      <p>Pilih akun dari Tabel Risiko untuk melihat detail</p>
     </div>
   )
 
@@ -79,7 +78,7 @@ export default function AccountDetail({ accountId, onBack }) {
 
   if (error) return (
     <div className="empty-state fade-in">
-      <div className="icon">⚠️</div>
+      <div className="icon" style={{ fontSize: '2.5rem' }}>⚠</div>
       <p style={{ color: 'var(--critical)' }}>{error}</p>
       <button className="btn btn-ghost" style={{ marginTop: 12 }} onClick={onBack}>← Kembali</button>
     </div>
@@ -103,8 +102,8 @@ export default function AccountDetail({ accountId, onBack }) {
           ← Kembali
         </button>
         <div className="page-header" style={{ margin: 0, flex: 1 }}>
-          <h2 className="mono">🔍 {accountId}</h2>
-          <p>Profil risiko lengkap — analisis behavioral multi-dimensi</p>
+          <h2 className="mono">{accountId}</h2>
+          <p>Profil risiko lengkap — analisis perilaku multi-dimensi</p>
         </div>
         {/* Risk score gauge */}
         <div style={{
@@ -113,7 +112,7 @@ export default function AccountDetail({ accountId, onBack }) {
           borderRadius: 'var(--radius-lg)',
         }}>
           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Risk Score
+            Skor Risiko
           </div>
           <div style={{ fontSize: '2.5rem', fontWeight: 900, color: scoreColor, lineHeight: 1.1 }}>
             {score}
@@ -125,9 +124,17 @@ export default function AccountDetail({ accountId, onBack }) {
       {/* ── Profile + Archetype ────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
         <div className="card" style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-          <div style={{ fontSize: '2.5rem' }}>{prof?.icon || '👤'}</div>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%',
+            background: `${prof?.color || '#4b5563'}20`,
+            border: `2px solid ${prof?.color || '#4b5563'}40`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.2rem', fontWeight: 800, color: prof?.color || 'var(--text-muted)',
+          }}>
+            {(prof?.label || 'N')[0]}
+          </div>
           <div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Behavioral Profile</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Profil Perilaku</div>
             <div style={{ fontSize: '1rem', fontWeight: 700, color: prof?.color || 'var(--text-primary)', marginTop: 2 }}>
               {prof?.label || data.profile}
             </div>
@@ -150,13 +157,13 @@ export default function AccountDetail({ accountId, onBack }) {
       {/* ── Behavioral Stats ──────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
         <StatCard
-          label="Night Ratio"
+          label="Rasio Malam"
           value={data.avg_night_ratio != null ? `${(data.avg_night_ratio * 100).toFixed(0)}%` : '—'}
           sub="Transaksi 22.00–04.00"
           color={data.avg_night_ratio > 0.5 ? '#ef4444' : undefined}
         />
         <StatCard
-          label="Temporal Shift"
+          label="Pergeseran Temporal"
           value={data.avg_temporal_shift != null ? `${data.avg_temporal_shift > 0 ? '+' : ''}${Number(data.avg_temporal_shift).toFixed(3)}` : '—'}
           sub="Pergeseran jam aktivitas"
           color={data.avg_temporal_shift > 0.1 ? '#f97316' : undefined}
@@ -164,23 +171,23 @@ export default function AccountDetail({ accountId, onBack }) {
         <StatCard
           label="Burst Score"
           value={data.avg_burst_score != null ? Number(data.avg_burst_score).toFixed(1) : '—'}
-          sub="Lonjakan transaksi/24j"
+          sub="Lonjakan transaksi/24 jam"
           color={data.avg_burst_score > 3 ? '#eab308' : undefined}
         />
         <StatCard
-          label="Penerima Unik/7d"
+          label="Penerima Unik/7 Hari"
           value={data.avg_unique_recv != null ? Number(data.avg_unique_recv).toFixed(0) : '—'}
-          sub="Multi-recipient pattern"
+          sub="Pola multi-penerima"
           color={data.avg_unique_recv > 10 ? '#f97316' : undefined}
         />
         <StatCard
-          label="QRIS Ratio"
+          label="Rasio QRIS"
           value={data.avg_qris_ratio != null ? `${(data.avg_qris_ratio * 100).toFixed(0)}%` : '—'}
           sub="Porsi transaksi QRIS"
           color={data.avg_qris_ratio > 0.6 ? '#ef4444' : undefined}
         />
         <StatCard
-          label="Tx/24h"
+          label="Transaksi/24 Jam"
           value={data.avg_tx_24h != null ? Number(data.avg_tx_24h).toFixed(1) : '—'}
           sub="Rata-rata transaksi harian"
         />
@@ -189,7 +196,7 @@ export default function AccountDetail({ accountId, onBack }) {
       {/* ── Top Triggers ──────────────────────────────────────── */}
       {data.top_triggers && data.top_triggers !== '—' && (
         <div className="card" style={{ marginBottom: 16 }}>
-          <div className="card-title">🚩 Top Risk Triggers</div>
+          <div className="card-title">Pemicu Risiko Utama</div>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
             {data.top_triggers}
           </div>
@@ -199,7 +206,7 @@ export default function AccountDetail({ accountId, onBack }) {
       {/* ── AI Explanation ────────────────────────────────────── */}
       {data.explanation && (
         <div className="card" style={{ marginBottom: 16, background: 'rgba(0,120,212,0.06)', border: '1px solid rgba(0,120,212,0.2)' }}>
-          <div className="card-title" style={{ color: '#0078d4' }}>☁️ Azure OpenAI — Risk Explanation</div>
+          <div className="card-title" style={{ color: '#0078d4' }}>Azure OpenAI — Penjelasan Risiko</div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
             {data.explanation}
           </div>
@@ -209,7 +216,7 @@ export default function AccountDetail({ accountId, onBack }) {
       {/* ── Timeline Chart ────────────────────────────────────── */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <div className="card-title" style={{ margin: 0 }}>📈 Timeline Perilaku</div>
+          <div className="card-title" style={{ margin: 0 }}>Timeline Perilaku</div>
           <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
             {timeline.length} snapshot harian
           </span>
@@ -221,10 +228,9 @@ export default function AccountDetail({ accountId, onBack }) {
           </div>
         ) : (
           <>
-            {/* Chart 1: Temporal shift + Night ratio */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 8 }}>
-                Temporal Shift & Night Ratio (7d)
+                Pergeseran Temporal & Rasio Malam (7 Hari)
               </div>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={timeline} margin={{ top: 4, right: 12, left: -20, bottom: 0 }}>
@@ -233,15 +239,14 @@ export default function AccountDetail({ accountId, onBack }) {
                   <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip content={<ChartTooltip />} />
                   <Legend wrapperStyle={{ fontSize: '0.7rem', color: 'var(--text-muted)' }} />
-                  <Line type="monotone" dataKey="temporal_shift" name="Temporal Shift"
+                  <Line type="monotone" dataKey="temporal_shift" name="Pergeseran Temporal"
                     stroke="#f97316" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="night_ratio_7d" name="Night Ratio 7d"
+                  <Line type="monotone" dataKey="night_ratio_7d" name="Rasio Malam 7h"
                     stroke="#8b5cf6" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
-            {/* Chart 2: Tx count + Burst score */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 8 }}>
                 Frekuensi Transaksi & Burst Score
@@ -253,7 +258,7 @@ export default function AccountDetail({ accountId, onBack }) {
                   <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip content={<ChartTooltip />} />
                   <Legend wrapperStyle={{ fontSize: '0.7rem', color: 'var(--text-muted)' }} />
-                  <Line type="monotone" dataKey="tx_count_24h" name="Tx/24h"
+                  <Line type="monotone" dataKey="tx_count_24h" name="Transaksi/24 Jam"
                     stroke="#3b82f6" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="burst_score" name="Burst Score"
                     stroke="#ef4444" strokeWidth={2} dot={false} />
@@ -261,7 +266,6 @@ export default function AccountDetail({ accountId, onBack }) {
               </ResponsiveContainer>
             </div>
 
-            {/* Chart 3: Amount (dalam ribuan) */}
             <div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 8 }}>
                 Nominal Transaksi (dalam Rp ribu)
@@ -272,7 +276,7 @@ export default function AccountDetail({ accountId, onBack }) {
                   <XAxis dataKey="day" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip content={<ChartTooltip />} />
-                  <Line type="monotone" dataKey="amount_k" name="Amount (Rp ribu)"
+                  <Line type="monotone" dataKey="amount_k" name="Nominal (Rp ribu)"
                     stroke="#22c55e" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>

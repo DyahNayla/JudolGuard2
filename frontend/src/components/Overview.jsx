@@ -13,10 +13,10 @@ const RISK_COLORS = {
 }
 
 const PROFILE_LABELS = {
-  normal:        { label: 'Normal',        icon: '😊' },
-  early_stage:   { label: 'Early Stage',   icon: '⚠️' },
-  escalating:    { label: 'Escalating',    icon: '📈' },
-  heavy_gambler: { label: 'Heavy Gambler', icon: '🎰' },
+  normal:        { label: 'Normal',        color: '#22c55e' },
+  early_stage:   { label: 'Early Stage',   color: '#eab308' },
+  escalating:    { label: 'Escalating',    color: '#f97316' },
+  heavy_gambler: { label: 'Heavy Gambler', color: '#ef4444' },
 }
 
 function ScoreBar({ score }) {
@@ -72,7 +72,7 @@ export default function Overview({ onSelectAccount }) {
 
   if (error) return (
     <div className="empty-state fade-in">
-      <div className="icon">⚠️</div>
+      <div className="icon" style={{ fontSize: '2.5rem' }}>⚠</div>
       <p style={{ color: 'var(--critical)' }}>{error}</p>
       <p style={{ marginTop: 8 }}>Pastikan FastAPI berjalan di localhost:8000</p>
     </div>
@@ -91,11 +91,11 @@ export default function Overview({ onSelectAccount }) {
     <div className="fade-in">
       {/* Page header */}
       <div className="page-header">
-        <h2>📊 Overview Dashboard</h2>
-        <p>Ringkasan deteksi risiko transaksi — real-time dari model JudolGuard</p>
+        <h2>Ringkasan Dashboard</h2>
+        <p>Ringkasan deteksi risiko transaksi dari model JudolGuard secara real-time</p>
       </div>
 
-      {/* ── KPI Cards ─────────────────────────────────────────── */}
+      {/* ── KPI Cards — fokus akun saja ────────────────────────── */}
       <div className="kpi-grid">
         <div className="kpi-card brand">
           <div className="kpi-label">Total Akun Dipantau</div>
@@ -103,39 +103,24 @@ export default function Overview({ onSelectAccount }) {
           <div className="kpi-sub">Aktif dalam sistem JudolGuard</div>
         </div>
         <div className="kpi-card critical">
-          <div className="kpi-label">Critical 🔴</div>
+          <div className="kpi-label">Critical</div>
           <div className="kpi-value">{data.critical}</div>
           <div className="kpi-sub">Skor ≥ 81 — eskalasi OJK/PPATK</div>
         </div>
         <div className="kpi-card high">
-          <div className="kpi-label">High 🟠</div>
+          <div className="kpi-label">High</div>
           <div className="kpi-value">{data.high}</div>
           <div className="kpi-sub">Skor 61–80 — batasi transfer</div>
         </div>
         <div className="kpi-card medium">
-          <div className="kpi-label">Medium 🟡</div>
+          <div className="kpi-label">Medium</div>
           <div className="kpi-value">{data.medium}</div>
           <div className="kpi-sub">Skor 31–60 — kirim edukasi</div>
         </div>
         <div className="kpi-card low">
-          <div className="kpi-label">Low 🟢</div>
+          <div className="kpi-label">Low</div>
           <div className="kpi-value">{data.low}</div>
           <div className="kpi-sub">Skor ≤ 30 — monitor pasif</div>
-        </div>
-        <div className="kpi-card brand">
-          <div className="kpi-label">Detection Rate</div>
-          <div className="kpi-value">{data.detection_rate}%</div>
-          <div className="kpi-sub">Akun High + Critical</div>
-        </div>
-        <div className="kpi-card brand">
-          <div className="kpi-label">PR-AUC</div>
-          <div className="kpi-value">{data.model_pr_auc}</div>
-          <div className="kpi-sub">XGBoost + Isolation Forest</div>
-        </div>
-        <div className="kpi-card brand">
-          <div className="kpi-label">F1-Score</div>
-          <div className="kpi-value">{data.model_f1}</div>
-          <div className="kpi-sub">5-fold Stratified CV</div>
         </div>
       </div>
 
@@ -143,7 +128,7 @@ export default function Overview({ onSelectAccount }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 16, marginBottom: 24 }}>
         {/* Pie Chart */}
         <div className="card">
-          <div className="card-title">Distribusi Risk Level</div>
+          <div className="card-title">Distribusi Tingkat Risiko</div>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie
@@ -174,7 +159,7 @@ export default function Overview({ onSelectAccount }) {
 
         {/* Bar Chart */}
         <div className="card">
-          <div className="card-title">Distribusi per Risk Level</div>
+          <div className="card-title">Jumlah Akun per Tingkat Risiko</div>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={pieData} margin={{ top: 4, right: 12, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -201,7 +186,7 @@ export default function Overview({ onSelectAccount }) {
       {/* ── Top 5 Akun Berisiko ───────────────────────────────── */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div className="card-title" style={{ margin: 0 }}>🚨 Top 5 Akun Risiko Tertinggi</div>
+          <div className="card-title" style={{ margin: 0 }}>Top 5 Akun Risiko Tertinggi</div>
           <button
             className="btn btn-ghost"
             style={{ fontSize: '0.72rem', padding: '5px 12px' }}
@@ -216,10 +201,10 @@ export default function Overview({ onSelectAccount }) {
             <thead>
               <tr>
                 <th>#</th>
-                <th>Account ID</th>
-                <th>Profile</th>
-                <th>Risk Level</th>
-                <th style={{ width: 200 }}>Risk Score</th>
+                <th>ID Akun</th>
+                <th>Profil</th>
+                <th>Tingkat Risiko</th>
+                <th style={{ width: 200 }}>Skor Risiko</th>
               </tr>
             </thead>
             <tbody>
@@ -233,8 +218,11 @@ export default function Overview({ onSelectAccount }) {
                     {acc.account_id}
                   </td>
                   <td>
-                    <span className="chip">
-                      {PROFILE_LABELS[acc.profile]?.icon} {PROFILE_LABELS[acc.profile]?.label || acc.profile}
+                    <span className="chip" style={{
+                      color: PROFILE_LABELS[acc.profile]?.color || 'var(--text-muted)',
+                      borderColor: `${PROFILE_LABELS[acc.profile]?.color || '#4b5563'}30`,
+                    }}>
+                      {PROFILE_LABELS[acc.profile]?.label || acc.profile}
                     </span>
                   </td>
                   <td>
@@ -250,15 +238,15 @@ export default function Overview({ onSelectAccount }) {
         </div>
       </div>
 
-      {/* ── Mitigasi False Positive ───────────────────────────── */}
+      {/* ── Matriks Mitigasi False Positive ───────────────────── */}
       <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-title">🔒 Matriks Mitigasi False Positive</div>
+        <div className="card-title">Matriks Mitigasi False Positive</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
           {[
             { level: 'Critical', range: '81–100', color: 'var(--critical)', bg: 'var(--critical-bg)',
               action: 'Soft-freeze transaksi keluar + STR ke PPATK/OJK', confidence: 'Sangat Tinggi' },
             { level: 'High', range: '61–80', color: 'var(--high)', bg: 'var(--high-bg)',
-              action: 'Limit transfer harian + wajib MFA/biometrik', confidence: 'Tinggi' },
+              action: 'Batasi transfer harian + wajib MFA/biometrik', confidence: 'Tinggi' },
             { level: 'Medium', range: '31–60', color: 'var(--medium)', bg: 'var(--medium-bg)',
               action: 'Notifikasi edukasi bahaya judi online ke aplikasi', confidence: 'Sedang' },
             { level: 'Low', range: '0–30', color: 'var(--low)', bg: 'var(--low-bg)',
@@ -274,7 +262,7 @@ export default function Overview({ onSelectAccount }) {
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{m.action}</div>
               <div style={{ marginTop: 8, fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                Confidence: <span style={{ color: m.color }}>{m.confidence}</span>
+                Keyakinan: <span style={{ color: m.color }}>{m.confidence}</span>
               </div>
             </div>
           ))}

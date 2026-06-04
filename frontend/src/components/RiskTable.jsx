@@ -9,10 +9,10 @@ const PROFILES = ['normal', 'early_stage', 'escalating', 'heavy_gambler']
 const LEVELS   = ['Critical', 'High', 'Medium', 'Low']
 
 const PROFILE_LABELS = {
-  normal:        { label: 'Normal',        icon: '😊', color: 'var(--low)' },
-  early_stage:   { label: 'Early Stage',   icon: '⚠️', color: 'var(--medium)' },
-  escalating:    { label: 'Escalating',    icon: '📈', color: 'var(--high)' },
-  heavy_gambler: { label: 'Heavy Gambler', icon: '🎰', color: 'var(--critical)' },
+  normal:        { label: 'Normal',        color: 'var(--low)' },
+  early_stage:   { label: 'Early Stage',   color: 'var(--medium)' },
+  escalating:    { label: 'Escalating',    color: 'var(--high)' },
+  heavy_gambler: { label: 'Heavy Gambler', color: 'var(--critical)' },
 }
 
 function ScoreBar({ score }) {
@@ -39,7 +39,7 @@ export default function RiskTable({ onSelectAccount }) {
   const [filterProfile, setFilterProfile] = useState('')
   const [search,        setSearch]        = useState('')
   const [offset,        setOffset]        = useState(0)
-  const LIMIT = 50
+  const LIMIT = 15
 
   const fetchAccounts = useCallback(() => {
     setLoading(true)
@@ -71,7 +71,7 @@ export default function RiskTable({ onSelectAccount }) {
   return (
     <div className="fade-in">
       <div className="page-header">
-        <h2>📋 Risk Table</h2>
+        <h2>Tabel Risiko</h2>
         <p>Seluruh akun terdeteksi beserta skor risiko, profil perilaku, dan archetype</p>
       </div>
 
@@ -81,7 +81,7 @@ export default function RiskTable({ onSelectAccount }) {
           {/* Search */}
           <input
             className="input"
-            placeholder="🔍 Cari Account ID..."
+            placeholder="Cari ID Akun..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ maxWidth: 220 }}
@@ -145,12 +145,12 @@ export default function RiskTable({ onSelectAccount }) {
           </div>
         ) : error ? (
           <div className="empty-state">
-            <div className="icon">⚠️</div>
+            <div className="icon" style={{ fontSize: '2.5rem' }}>⚠</div>
             <p style={{ color: 'var(--critical)' }}>{error}</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="icon">🔍</div>
+            <div className="icon" style={{ fontSize: '2.5rem' }}>—</div>
             <p>Tidak ada akun yang cocok dengan filter ini</p>
           </div>
         ) : (
@@ -158,14 +158,14 @@ export default function RiskTable({ onSelectAccount }) {
             <table>
               <thead>
                 <tr>
-                  <th>Account ID</th>
+                  <th>ID Akun</th>
                   <th>Archetype</th>
-                  <th>Profile</th>
-                  <th>Risk Level</th>
-                  <th style={{ minWidth: 160 }}>Risk Score</th>
-                  <th>Night Ratio</th>
+                  <th>Profil</th>
+                  <th>Tingkat Risiko</th>
+                  <th style={{ minWidth: 160 }}>Skor Risiko</th>
+                  <th>Rasio Malam</th>
                   <th>Burst Score</th>
-                  <th>Uniq Recv/7d</th>
+                  <th>Penerima Unik/7h</th>
                   <th>Rekomendasi</th>
                 </tr>
               </thead>
@@ -190,7 +190,7 @@ export default function RiskTable({ onSelectAccount }) {
                           border: `1px solid ${prof?.color || '#4b5563'}30`,
                           whiteSpace: 'nowrap',
                         }}>
-                          {prof?.icon} {prof?.label || acc.profile}
+                          {prof?.label || acc.profile}
                         </span>
                       </td>
                       <td>

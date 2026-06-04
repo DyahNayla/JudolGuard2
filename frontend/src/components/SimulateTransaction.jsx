@@ -9,23 +9,23 @@ const RISK_COLORS = {
 
 const PRESETS = [
   {
-    label: '🌙 Midnight QRIS',
+    label: 'Midnight QRIS',
     desc: 'Transaksi QRIS tengah malam, nominal kecil, frekuensi tinggi',
     values: { hour: 2, amount: 45000, channel: 'qris', tx_count_24h: 18, unique_recv_7d: 14, avg_amount_7d: 60000 }
   },
   {
-    label: '🔀 Smurfing Pattern',
+    label: 'Pola Smurfing',
     desc: 'Transfer ke banyak penerima unik dengan nominal hampir sama',
     values: { hour: 23, amount: 490000, channel: 'transfer', tx_count_24h: 22, unique_recv_7d: 20, avg_amount_7d: 300000 }
   },
   {
-    label: '📊 Normal Transaction',
-    desc: 'Transaksi wajar di jam kerja, nominal normal',
+    label: 'Transaksi Normal',
+    desc: 'Transaksi wajar di jam kerja dengan nominal normal',
     values: { hour: 10, amount: 150000, channel: 'ewallet', tx_count_24h: 2, unique_recv_7d: 3, avg_amount_7d: 200000 }
   },
   {
-    label: '⚡ Burst Activity',
-    desc: 'Aktivitas mendadak melonjak setelah lama dormant',
+    label: 'Burst Activity',
+    desc: 'Aktivitas mendadak melonjak setelah lama tidak aktif',
     values: { hour: 1, amount: 95000, channel: 'qris', tx_count_24h: 30, unique_recv_7d: 8, avg_amount_7d: 50000 }
   },
 ]
@@ -33,52 +33,35 @@ const PRESETS = [
 // Gauge SVG
 function RiskGauge({ score, level }) {
   const color = RISK_COLORS[level] || '#4b5563'
-  const angle = -135 + (score / 100) * 270
   const r = 70, cx = 90, cy = 90
   const toRad = deg => deg * Math.PI / 180
-  const arcX = cx + r * Math.cos(toRad(angle))
-  const arcY = cy + r * Math.sin(toRad(angle))
-
-  // Arc path
   const startAngle = -135, endAngle = 135
   const startX = cx + r * Math.cos(toRad(startAngle))
   const startY = cy + r * Math.sin(toRad(startAngle))
   const endX   = cx + r * Math.cos(toRad(endAngle))
   const endY   = cy + r * Math.sin(toRad(endAngle))
-
   const scoreAngle = -135 + (score / 100) * 270
   const sweepX = cx + r * Math.cos(toRad(scoreAngle))
   const sweepY = cy + r * Math.sin(toRad(scoreAngle))
   const largeArc = score > 55 ? 1 : 0
+  const arcX = cx + r * Math.cos(toRad(scoreAngle))
+  const arcY = cy + r * Math.sin(toRad(scoreAngle))
 
   return (
     <svg viewBox="0 0 180 130" style={{ width: '100%', maxWidth: 220 }}>
-      {/* Track */}
-      <path
-        d={`M ${startX} ${startY} A ${r} ${r} 0 1 1 ${endX} ${endY}`}
-        fill="none" stroke="var(--bg-hover)" strokeWidth="10" strokeLinecap="round"
-      />
-      {/* Filled arc */}
+      <path d={`M ${startX} ${startY} A ${r} ${r} 0 1 1 ${endX} ${endY}`}
+        fill="none" stroke="var(--bg-hover)" strokeWidth="10" strokeLinecap="round" />
       {score > 0 && (
-        <path
-          d={`M ${startX} ${startY} A ${r} ${r} 0 ${largeArc} 1 ${sweepX} ${sweepY}`}
+        <path d={`M ${startX} ${startY} A ${r} ${r} 0 ${largeArc} 1 ${sweepX} ${sweepY}`}
           fill="none" stroke={color} strokeWidth="10" strokeLinecap="round"
-          style={{ filter: `drop-shadow(0 0 6px ${color}80)` }}
-        />
+          style={{ filter: `drop-shadow(0 0 6px ${color}80)` }} />
       )}
-      {/* Needle tip */}
       <circle cx={arcX} cy={arcY} r={6} fill={color}
         style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
-      {/* Score */}
       <text x={cx} y={cy + 8} textAnchor="middle"
-        fill={color} fontSize="26" fontWeight="900" fontFamily="Inter, sans-serif">
-        {score}
-      </text>
+        fill={color} fontSize="26" fontWeight="900" fontFamily="Inter, sans-serif">{score}</text>
       <text x={cx} y={cy + 26} textAnchor="middle"
-        fill="var(--text-muted)" fontSize="10" fontFamily="Inter, sans-serif">
-        /100
-      </text>
-      {/* Labels */}
+        fill="var(--text-muted)" fontSize="10" fontFamily="Inter, sans-serif">/100</text>
       <text x={startX - 4} y={startY + 14} textAnchor="middle"
         fill="var(--text-muted)" fontSize="9">0</text>
       <text x={endX + 4} y={endY + 14} textAnchor="middle"
@@ -133,7 +116,6 @@ export default function SimulateTransaction() {
         avg_amount_7d: Number(form.avg_amount_7d),
       })
       setResult(res)
-      // Simpan ke history (max 5)
       setHistory(h => [{
         ...res,
         input: { ...form },
@@ -151,8 +133,9 @@ export default function SimulateTransaction() {
   return (
     <div className="fade-in">
       <div className="page-header">
-        <h2>⚡ Real-Time Transaction Simulator</h2>
-        <p>Prediksi skor risiko transaksi baru secara instan — demo interaktif untuk juri</p>
+        <h2>Simulasi Transaksi Real-Time</h2>
+        <p>Uji prediksi skor risiko untuk skenario transaksi baru menggunakan model JudolGuard.
+           Fitur ini membantu tim compliance memahami bagaimana model menilai berbagai pola transaksi secara real-time.</p>
       </div>
 
       {/* ── Quick presets ─────────────────────────────────────── */}
@@ -178,9 +161,9 @@ export default function SimulateTransaction() {
       <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 16 }}>
         {/* ── Left: Form ────────────────────────────────────────── */}
         <div className="card">
-          <div className="card-title">📝 Input Transaksi</div>
+          <div className="card-title">Input Transaksi</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <FormField label="⏰ Jam Transaksi (0–23)" hint={isNight ? '🌙 Jam malam terdeteksi' : ''}>
+            <FormField label="Jam Transaksi (0–23)" hint={isNight ? 'Jam malam terdeteksi' : ''}>
               <input
                 className="input"
                 type="number" min={0} max={23}
@@ -190,17 +173,12 @@ export default function SimulateTransaction() {
               />
             </FormField>
 
-            <FormField label="💰 Nominal (Rp)">
-              <input
-                className="input"
-                type="number" min={0}
-                value={form.amount}
-                onChange={e => set('amount', e.target.value)}
-                placeholder="50000"
-              />
+            <FormField label="Nominal (Rp)">
+              <input className="input" type="number" min={0} value={form.amount}
+                onChange={e => set('amount', e.target.value)} placeholder="50000" />
             </FormField>
 
-            <FormField label="📱 Channel">
+            <FormField label="Kanal Pembayaran">
               <select className="input" value={form.channel} onChange={e => set('channel', e.target.value)}>
                 {CHANNELS.map(c => (
                   <option key={c} value={c}>{c.toUpperCase()}</option>
@@ -208,44 +186,32 @@ export default function SimulateTransaction() {
               </select>
             </FormField>
 
-            <FormField label="🔢 Tx count 24h">
-              <input
-                className="input"
-                type="number" min={0}
-                value={form.tx_count_24h}
-                onChange={e => set('tx_count_24h', e.target.value)}
-              />
+            <FormField label="Jumlah Transaksi 24 Jam">
+              <input className="input" type="number" min={0} value={form.tx_count_24h}
+                onChange={e => set('tx_count_24h', e.target.value)} />
             </FormField>
 
-            <FormField label="👥 Unique Receivers 7d">
-              <input
-                className="input"
-                type="number" min={0}
-                value={form.unique_recv_7d}
-                onChange={e => set('unique_recv_7d', e.target.value)}
-              />
+            <FormField label="Penerima Unik 7 Hari">
+              <input className="input" type="number" min={0} value={form.unique_recv_7d}
+                onChange={e => set('unique_recv_7d', e.target.value)} />
             </FormField>
 
-            <FormField label="📊 Avg Amount 7d (Rp)">
-              <input
-                className="input"
-                type="number" min={0}
-                value={form.avg_amount_7d}
-                onChange={e => set('avg_amount_7d', e.target.value)}
-              />
+            <FormField label="Rata-rata Nominal 7 Hari (Rp)">
+              <input className="input" type="number" min={0} value={form.avg_amount_7d}
+                onChange={e => set('avg_amount_7d', e.target.value)} />
             </FormField>
           </div>
 
           {/* Visualisasi input */}
           <div style={{ marginTop: 14, padding: '10px 14px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 6 }}>Preview indikator risiko input:</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 6 }}>Indikator risiko dari input:</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {isNight && <span className="chip" style={{ color: 'var(--critical)', borderColor: 'rgba(239,68,68,0.3)' }}>🌙 Jam Malam</span>}
-              {form.channel === 'qris' && <span className="chip" style={{ color: 'var(--high)', borderColor: 'rgba(249,115,22,0.3)' }}>📱 QRIS</span>}
-              {form.tx_count_24h > 10 && <span className="chip" style={{ color: 'var(--medium)', borderColor: 'rgba(234,179,8,0.3)' }}>⚡ High Freq</span>}
-              {form.unique_recv_7d > 10 && <span className="chip" style={{ color: 'var(--high)', borderColor: 'rgba(249,115,22,0.3)' }}>👥 Multi-Recv</span>}
+              {isNight && <span className="chip" style={{ color: 'var(--critical)', borderColor: 'rgba(239,68,68,0.3)' }}>Jam Malam</span>}
+              {form.channel === 'qris' && <span className="chip" style={{ color: 'var(--high)', borderColor: 'rgba(249,115,22,0.3)' }}>QRIS</span>}
+              {form.tx_count_24h > 10 && <span className="chip" style={{ color: 'var(--medium)', borderColor: 'rgba(234,179,8,0.3)' }}>Frekuensi Tinggi</span>}
+              {form.unique_recv_7d > 10 && <span className="chip" style={{ color: 'var(--high)', borderColor: 'rgba(249,115,22,0.3)' }}>Multi-Penerima</span>}
               {form.amount > 0 && form.avg_amount_7d > 0 && form.amount / form.avg_amount_7d > 1.5 && (
-                <span className="chip" style={{ color: 'var(--critical)', borderColor: 'rgba(239,68,68,0.3)' }}>💸 Anomali Nominal</span>
+                <span className="chip" style={{ color: 'var(--critical)', borderColor: 'rgba(239,68,68,0.3)' }}>Anomali Nominal</span>
               )}
             </div>
           </div>
@@ -258,12 +224,12 @@ export default function SimulateTransaction() {
           >
             {loading
               ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Memprediksi...</>
-              : '🚀 Prediksi Risiko Sekarang'}
+              : 'Prediksi Risiko Sekarang'}
           </button>
 
           {error && (
             <div style={{ marginTop: 10, padding: '10px 14px', background: 'var(--critical-bg)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 'var(--radius-sm)', color: 'var(--critical)', fontSize: '0.78rem' }}>
-              ⚠️ {error}
+              {error}
             </div>
           )}
         </div>
@@ -273,8 +239,10 @@ export default function SimulateTransaction() {
           {!result ? (
             <div className="card" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                <div style={{ fontSize: '3rem', marginBottom: 12 }}>⚡</div>
-                <div style={{ fontSize: '0.82rem' }}>Isi form di sebelah kiri<br />atau pilih preset, lalu klik Prediksi</div>
+                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <div style={{ fontSize: '0.82rem' }}>Isi formulir di sebelah kiri<br />atau pilih skenario, lalu klik Prediksi</div>
               </div>
             </div>
           ) : (
@@ -304,14 +272,14 @@ export default function SimulateTransaction() {
 
               {/* Key triggers */}
               <div className="card">
-                <div className="card-title">🔑 Key Triggers</div>
+                <div className="card-title">Pemicu Utama</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {Object.entries(result.key_triggers).map(([k, v]) => {
                     const labels = {
-                      is_night:    { label: 'Jam Malam', fmt: v => v ? '✅ Ya' : '—' },
+                      is_night:    { label: 'Jam Malam', fmt: v => v ? 'Ya' : '—' },
                       burst_score: { label: 'Burst Score', fmt: v => v.toFixed(2) },
-                      qris_ratio:  { label: 'QRIS Ratio',  fmt: v => `${(v*100).toFixed(0)}%` },
-                      amt_vs_avg:  { label: 'Nominal vs Avg', fmt: v => `${v.toFixed(2)}×` },
+                      qris_ratio:  { label: 'Rasio QRIS',  fmt: v => `${(v*100).toFixed(0)}%` },
+                      amt_vs_avg:  { label: 'Nominal vs Rata-rata', fmt: v => `${v.toFixed(2)}×` },
                     }
                     const cfg = labels[k]
                     const isHigh = (k === 'is_night' && v) || (k === 'burst_score' && v > 3) ||
@@ -337,7 +305,7 @@ export default function SimulateTransaction() {
           {/* History */}
           {history.length > 0 && (
             <div className="card">
-              <div className="card-title">📋 Riwayat Prediksi</div>
+              <div className="card-title">Riwayat Prediksi</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {history.map((h, i) => (
                   <div key={i} style={{
