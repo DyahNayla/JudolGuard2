@@ -213,6 +213,7 @@ body {
   flex: 1;
   padding: 24px;
   min-height: 100vh;
+  background: linear-gradient(180deg, #0a1628 0%, #0d1f3c 40%, #0a1628 100%);
 }
 
 /* ── Page Header ───────────────────────────────────────────── */

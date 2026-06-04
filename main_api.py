@@ -34,6 +34,7 @@ import os
 import json
 import time
 import asyncio
+import math
 
 app = FastAPI(title="JudolGuard API", version="1.0.0")
 
@@ -98,17 +99,30 @@ def get_recommendation(level: str) -> str:
 def get_archetype(row) -> str:
     """Labeli akun dengan behavioral archetype ala PPATK"""
     if row.get("avg_temporal_shift", 0) > 0.2:
-        return "🌙 Midnight Chaser"
+        return "Midnight Chaser"
     elif row.get("avg_burst_score", 0) > 3 and row.get("avg_unique_recv", 0) > 10:
-        return "🔀 Micro-Smurfer"
+        return "Micro-Smurfer"
     elif row.get("avg_qris_ratio", 0) > 0.6:
-        return "📱 QRIS Ghost"
+        return "QRIS Ghost"
     elif row.get("avg_night_ratio", 0) > 0.5:
-        return "🦇 Night Operator"
+        return "Night Operator"
     elif row.get("avg_unique_recv", 0) > 15:
-        return "🕸️ Network Hub"
+        return "Network Hub"
     else:
-        return "📊 Standard Risk"
+        return "Standard Risk"
+
+def sanitize_value(val):
+    if isinstance(val, dict):
+        return {k: sanitize_value(v) for k, v in val.items()}
+    elif isinstance(val, list):
+        return [sanitize_value(v) for v in val]
+    elif isinstance(val, float):
+        if math.isnan(val) or math.isinf(val):
+            return None
+        return val
+    elif pd.isna(val):
+        return None
+    return val
 
 
 # ════════════════════════════════════════════════════════════
@@ -208,7 +222,7 @@ def get_account_detail(account_id: str):
         ]].to_dict(orient="records")
 
     row["timeline"] = timeline
-    return {k: (None if pd.isna(v) else v) for k, v in row.items()}
+    return sanitize_value(row)
 
 
 # ── 4. Recalculate dengan bobot baru ───────────────────────
