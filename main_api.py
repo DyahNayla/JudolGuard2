@@ -389,32 +389,45 @@ class PredictRequest(BaseModel):
 
 @app.post("/api/predict")
 def predict_transaction(req: PredictRequest):
-    if xgb_model is None:
+    if xgb_model is None or iso_forest is None:
         raise HTTPException(status_code=503, detail="Model belum dimuat")
 
     is_night    = 1 if (req.hour >= 22 or req.hour <= 4) else 0
-    amount_log  = float(np.log1p(req.amount))
     amt_ratio   = req.amount / req.avg_amount_7d if req.avg_amount_7d > 0 else 1.0
     night_ratio = 0.85 if is_night else 0.15
     qris_ratio  = 1.0 if req.channel == "qris" else (0.3 if req.channel == "ewallet" else 0.0)
     burst_score = req.tx_count_24h / 4.0
 
-    features = np.array([[
-        req.hour, is_night, night_ratio, night_ratio,
-        night_ratio - 0.1,
-        amount_log, amt_ratio, req.amount * req.tx_count_24h,
-        req.tx_count_24h, req.tx_count_24h * 7, burst_score,
-        req.unique_recv_7d, min(req.unique_recv_7d, req.tx_count_24h),
-        qris_ratio, 0, 0, 0.5
+    # 3 fitur dasar
+    temporal_shift = night_ratio - 0.1
+    amount_vs_avg_7d = amt_ratio
+    total_amount_7d = req.amount * req.tx_count_24h
+
+    # Step 1: Hitung anomaly_score menggunakan Isolation Forest
+    X_base = np.array([[
+        temporal_shift,
+        amount_vs_avg_7d,
+        total_amount_7d
+    ]])
+    raw_scores = iso_forest.score_samples(X_base)
+    # Normalisasi ke [0,1] sesuai range training
+    anomaly_score = float(np.clip(1 - ((raw_scores[0] + 0.6) / 0.5), 0, 1))
+
+    # Step 2: Prediksi XGBoost dengan 4 fitur
+    X_final = np.array([[
+        temporal_shift,
+        amount_vs_avg_7d,
+        total_amount_7d,
+        anomaly_score
     ]])
 
-    prob  = float(xgb_model.predict_proba(features)[0][1])
+    prob  = float(xgb_model.predict_proba(X_final)[0][1])
     score = round(prob * 100, 1)
     level = get_risk_level(score)
 
     # Determine archetype dari input
     mock_row = {
-        "avg_temporal_shift": night_ratio - 0.1,
+        "avg_temporal_shift": temporal_shift,
         "avg_burst_score"   : burst_score,
         "avg_unique_recv"   : req.unique_recv_7d,
         "avg_qris_ratio"    : qris_ratio,
@@ -785,4 +798,4 @@ def get_strategic_insights():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
