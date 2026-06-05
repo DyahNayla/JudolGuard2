@@ -15,76 +15,113 @@ import AzureProof         from './components/AzureProof'
 import StrategicInsights  from './components/StrategicInsights'
 import ChatbotPanel       from './components/ChatbotPanel'
 
-const Placeholder = ({ name }) => (
-  <div className="fade-in" style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
-    <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🚧</div>
-    <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{name}</div>
-    <div style={{ fontSize: '0.78rem', marginTop: '8px' }}>Komponen ini akan dibuat di tahap berikutnya</div>
-  </div>
-)
+const SESSION_KEY = 'judolguard_session'
 
+// NAV tanpa "Detail Akun" — detail ditampilkan inline saat klik baris tabel
 const NAV = [
   {
     section: 'Dashboard',
     items: [
-      { id: 'overview',    label: 'Ringkasan',        badge: null },
-      { id: 'etl',         label: 'ETL Pipeline',    badge: null },
+      { id: 'overview',  label: 'Overview',       icon: '◈' },
+      { id: 'etl',       label: 'ETL Pipeline',   icon: '⟳' },
     ]
   },
   {
-    section: 'Analisis Akun',
+    section: 'Account Analysis',
     items: [
-      { id: 'risk-table',  label: 'Tabel Risiko',      badge: null },
-      { id: 'detail',      label: 'Detail Akun',       badge: null },
-      { id: 'network',     label: 'Graf Jaringan',     badge: null },
+      { id: 'risk-table', label: 'Risk Table',     icon: '⊞' },
+      { id: 'network',    label: 'Network Graph',  icon: '⬡' },
     ]
   },
   {
-    section: 'Konfigurasi',
+    section: 'Configuration',
     items: [
-      { id: 'params',      label: 'Konfigurasi Parameter', badge: null },
-      { id: 'simulate',    label: 'Simulasi Transaksi',    badge: null },
-      { id: 'copilot',     label: 'Asisten AI',            badge: null },
+      { id: 'params',    label: 'Parameters',       icon: '⚙' },
+      { id: 'copilot',   label: 'AI Assistant',     icon: '✶' },
     ]
   },
   {
-    section: 'Panel Juri',
+    section: 'Platform',
     items: [
-      { id: 'eda',         label: 'EDA & Metodologi', badge: null },
-      { id: 'model',       label: 'Metrik Model',     badge: null },
-      { id: 'azure',       label: 'Bukti Azure',      badge: null },
-      { id: 'insights',    label: 'Insight Strategis',badge: null },
+      { id: 'azure',     label: 'Azure Services',    icon: '☁' },
+      { id: 'insights',  label: 'Strategic Insights', icon: '◆' },
     ]
   }
 ]
 
+// Robot SVG icon for floating chat button
+const BotIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="8" width="18" height="13" rx="2"/>
+    <path d="M8 8V5a4 4 0 0 1 8 0v3"/>
+    <circle cx="9" cy="14" r="1" fill="currentColor"/>
+    <circle cx="15" cy="14" r="1" fill="currentColor"/>
+    <path d="M9 17.5c.83.5 1.5.75 3 .75s2.17-.25 3-.75"/>
+    <line x1="12" y1="2" x2="12" y2="4"/>
+  </svg>
+)
+
 export default function App() {
-  const [showDashboard, setShowDashboard] = useState(false)
-  const [activePage, setActivePage] = useState('overview')
-  const [apiStatus, setApiStatus]   = useState('connecting')
-  const [apiInfo,   setApiInfo]     = useState(null)
+  // ── Session persistence ──────────────────────────────────
+  const loadSession = () => {
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY)) || null } catch { return null }
+  }
+  const saveSession = (s) => {
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)) } catch {}
+  }
+
+  const savedSession = loadSession()
+
+  const [showDashboard, setShowDashboard] = useState(!!savedSession)
+  const [enterpriseName, setEnterpriseName] = useState(savedSession?.enterprise || '')
+  const [activePage, setActivePage]   = useState('overview')
+  const [apiStatus, setApiStatus]     = useState('connecting')
+  const [apiInfo,   setApiInfo]       = useState(null)
   const [selectedAccount, setSelectedAccount] = useState(null)
-  const [chatOpen, setChatOpen]     = useState(false)
+  const [chatOpen, setChatOpen]       = useState(false)
 
   useEffect(() => {
     healthCheck()
-      .then(data => {
-        setApiStatus('ok')
-        setApiInfo(data)
-      })
+      .then(data => { setApiStatus('ok'); setApiInfo(data) })
       .catch(() => setApiStatus('error'))
   }, [])
 
+  const handleEnterDashboard = (enterprise) => {
+    const session = { enterprise: enterprise || 'Enterprise', ts: Date.now() }
+    saveSession(session)
+    setEnterpriseName(enterprise || 'Enterprise')
+    setShowDashboard(true)
+  }
+
+  const handleLogout = () => {
+    // Sesi TIDAK dihapus dari localStorage — user bisa resume tanpa upload ulang
+    // Hanya sembunyikan dashboard, kembali ke landing page
+    setShowDashboard(false)
+    setActivePage('overview')
+    setSelectedAccount(null)
+  }
+
+  const navigateTo = (page, accountId) => {
+    setActivePage(page)
+    if (accountId) setSelectedAccount(accountId)
+  }
+
   const renderPage = () => {
+    // Jika halaman aktif adalah detail tapi tidak ada accountId → fallback ke risk-table
+    if (activePage === 'detail' && !selectedAccount) {
+      return (
+        <RiskTable
+          onSelectAccount={(id) => { setSelectedAccount(id); setActivePage('detail') }}
+        />
+      )
+    }
+
     switch (activePage) {
-      case 'overview':  return <Overview onSelectAccount={(page, id) => { setActivePage(page); if (id) setSelectedAccount(id) }} />
-      case 'etl':       return <ETLWizard />
+      case 'overview':   return <Overview onSelectAccount={navigateTo} />
+      case 'etl':        return <ETLWizard />
       case 'risk-table': return (
         <RiskTable
-          onSelectAccount={(id) => {
-            setSelectedAccount(id)
-            setActivePage('detail')
-          }}
+          onSelectAccount={(id) => { setSelectedAccount(id); setActivePage('detail') }}
         />
       )
       case 'detail': return (
@@ -93,30 +130,58 @@ export default function App() {
           onBack={() => setActivePage('risk-table')}
         />
       )
-      case 'network':   return <NetworkGraph />
-      case 'params':    return <ParameterConfig />
-      case 'simulate':  return <SimulateTransaction />
-      case 'copilot':   return <AICopilot />
+      case 'network':  return <NetworkGraph />
+      case 'params':   return <ParameterConfig />
+      case 'copilot':  return <AICopilot />
       case 'eda':      return <EDAPanel />
       case 'model':    return <ModelMetrics />
       case 'azure':    return <AzureProof />
       case 'insights': return <StrategicInsights />
-      default:          return <Placeholder name={activePage} />
+      default:         return null
     }
   }
 
   if (!showDashboard) {
-    return <Onboarding onEnterDashboard={() => setShowDashboard(true)} />
+    return <Onboarding onEnterDashboard={handleEnterDashboard} />
   }
+
+  const activeNav = activePage === 'detail' ? 'risk-table' : activePage
 
   return (
     <div className="app-shell">
-      {/* ── Sidebar ─────────────────────────────────────────── */}
+      {/* ── Sidebar ──────────────────────────────────────────── */}
       <aside className="sidebar">
         <div className="sidebar-logo">
           <h1>JudolGuard</h1>
           <p>AI Compliance Intelligence</p>
         </div>
+
+        {/* Enterprise session info */}
+        {enterpriseName && (
+          <div style={{
+            padding: '8px 14px 6px',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div>
+              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Active Session</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-from)', marginTop: 1 }}>{enterpriseName}</div>
+            </div>
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              style={{
+                fontSize: '0.6rem', color: 'var(--text-muted)', background: 'transparent',
+                border: '1px solid var(--border-md)', borderRadius: 4, padding: '2px 7px',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--critical)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-md)' }}
+            >
+              Sign out
+            </button>
+          </div>
+        )}
 
         <div className="sidebar-status">
           <span
@@ -131,10 +196,10 @@ export default function App() {
             }}
           />
           {apiStatus === 'ok'
-            ? `API Online · ${apiInfo?.accounts ?? 0} akun`
+            ? `API Online · ${apiInfo?.accounts ?? 0} accounts`
             : apiStatus === 'error'
             ? 'API Offline'
-            : 'Menghubungkan...'}
+            : 'Connecting...'}
         </div>
 
         {/* Navigation */}
@@ -144,12 +209,11 @@ export default function App() {
             {group.items.map(item => (
               <button
                 key={item.id}
-                className={`nav-item${activePage === item.id ? ' active' : ''}`}
-                onClick={() => setActivePage(item.id)}
-                style={{ paddingLeft: '20px' }}
+                className={`nav-item${activeNav === item.id ? ' active' : ''}`}
+                onClick={() => { setActivePage(item.id); setSelectedAccount(null) }}
               >
+                <span className="nav-icon" style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>{item.icon}</span>
                 <span>{item.label}</span>
-                {item.badge && <span className="nav-badge">{item.badge}</span>}
               </button>
             ))}
           </div>
@@ -164,7 +228,7 @@ export default function App() {
         </div>
       </aside>
 
-      {/* ── Main Content ────────────────────────────────────── */}
+      {/* ── Main Content ──────────────────────────────────────── */}
       <main
         className="main-content"
         key={activePage}
@@ -173,44 +237,45 @@ export default function App() {
         {renderPage()}
       </main>
 
-      {/* ── Floating Chatbot Button ──────────────────────── */}
-      <button
-        onClick={() => setChatOpen(prev => !prev)}
-        title={chatOpen ? 'Tutup Asisten AI' : 'Buka Asisten AI'}
-        style={{
-          position: 'fixed',
-          bottom: 28,
-          right: chatOpen ? 372 : 24,
-          zIndex: 200,
-          width: 52,
-          height: 52,
-          borderRadius: '50%',
-          border: 'none',
-          background: chatOpen
-            ? 'rgba(239,68,68,0.15)'
-            : 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-          color: chatOpen ? 'var(--critical)' : '#fff',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: chatOpen ? '1.5rem' : '1.2rem',
-          boxShadow: chatOpen
-            ? '0 4px 20px rgba(239,68,68,0.3), 0 0 0 1px rgba(239,68,68,0.2)'
-            : '0 4px 20px rgba(59,130,246,0.5), 0 0 0 1px rgba(59,130,246,0.3)',
-          transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-        }}
-      >
-        {chatOpen ? '×' : (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M12 2v2M2 15h2m16 0h2m-6-8a4 4 0 1 0-8 0v4h8V7z"/>
-          </svg>
-        )}
-      </button>
 
-      {/* ── Chatbot Slide Panel ───────────────────────────── */}
-      <ChatbotPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
+      {/* Floating chatbot button — disembunyikan di halaman AI Assistant */}
+      {activePage !== 'copilot' && (
+        <button
+          onClick={() => setChatOpen(prev => !prev)}
+          title={chatOpen ? 'Close AI Assistant' : 'Open AI Assistant'}
+          style={{
+            position: 'fixed',
+            bottom: 28,
+            right: chatOpen ? 372 : 24,
+            zIndex: 200,
+            width: 54,
+            height: 54,
+            borderRadius: '50%',
+            border: 'none',
+            background: chatOpen
+              ? 'rgba(239,68,68,0.15)'
+              : 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+            color: chatOpen ? 'var(--critical)' : '#fff',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: chatOpen ? '1.4rem' : '1rem',
+            boxShadow: chatOpen
+              ? '0 4px 20px rgba(239,68,68,0.3), 0 0 0 1px rgba(239,68,68,0.2)'
+              : '0 4px 24px rgba(59,130,246,0.55), 0 0 0 1px rgba(59,130,246,0.3)',
+            transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
+          }}
+        >
+          {chatOpen ? '×' : <BotIcon />}
+        </button>
+      )}
+
+      {/* Chatbot panel — juga tidak tampil di halaman AI Assistant */}
+      {activePage !== 'copilot' && (
+        <ChatbotPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
+      )}
+
     </div>
   )
 }

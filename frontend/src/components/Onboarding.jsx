@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import './Onboarding.css'
 
+const SESSION_KEY = 'judolguard_session'
+
 /* ── Particle Canvas ─────────────────────────────────────────── */
 function ParticleCanvas() {
   const ref = useRef(null)
@@ -11,15 +13,15 @@ function ParticleCanvas() {
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
     resize()
     window.addEventListener('resize', resize)
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 90; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        r: Math.random() * 1.5 + 0.3,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        a: Math.random() * 0.6 + 0.2,
-        color: Math.random() > 0.5 ? '0,212,255' : '139,92,246',
+        r: Math.random() * 1.8 + 0.3,
+        vx: (Math.random() - 0.5) * 0.28,
+        vy: (Math.random() - 0.5) * 0.28,
+        a: Math.random() * 0.55 + 0.15,
+        color: ['0,212,255', '139,92,246', '59,130,246'][Math.floor(Math.random() * 3)],
       })
     }
     const draw = () => {
@@ -40,12 +42,12 @@ function ParticleCanvas() {
           const dx = particles[i].x - particles[j].x
           const dy = particles[i].y - particles[j].y
           const d = Math.sqrt(dx * dx + dy * dy)
-          if (d < 100) {
+          if (d < 110) {
             ctx.beginPath()
             ctx.moveTo(particles[i].x, particles[i].y)
             ctx.lineTo(particles[j].x, particles[j].y)
-            ctx.strokeStyle = `rgba(0,212,255,${0.08 * (1 - d / 100)})`
-            ctx.lineWidth = 0.5
+            ctx.strokeStyle = `rgba(0,212,255,${0.07 * (1 - d / 110)})`
+            ctx.lineWidth = 0.4
             ctx.stroke()
           }
         }
@@ -61,8 +63,7 @@ function ParticleCanvas() {
 /* ── SVG Icons ───────────────────────────────────────────────── */
 const EyeOpen = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-    <circle cx="12" cy="12" r="3"/>
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
   </svg>
 )
 const EyeClosed = () => (
@@ -78,7 +79,7 @@ const LockIcon = () => (
 )
 
 /* ── Phase 1: Landing ────────────────────────────────────────── */
-function LandingPhase({ onConnect, onDashboard }) {
+function LandingPhase({ onConnect, onDashboard, savedSession }) {
   return (
     <div className="ob-landing fade-in">
       <div className="ob-header">
@@ -96,14 +97,14 @@ function LandingPhase({ onConnect, onDashboard }) {
           Enterprise Transaction<br />
           <span className="ob-gradient-text">Intelligence System</span>
         </h1>
-        <p className="ob-hero-sub">Sistem Deteksi Risiko Transaksi Berbasis AI untuk Platform Digital</p>
+        <p className="ob-hero-sub">AI-powered transaction risk detection platform for digital finance</p>
       </div>
 
       <div className="ob-status-grid">
         {[
-          { label: 'Waktu Aktif', icon: '●', value: '99.98%', sub: '● Operasional', subColor: '#22c55e' },
-          { label: 'Sumber Data', icon: '↗', value: '847', sub: 'Terhubung ke sumber data', subColor: '#00d4ff' },
-          { label: 'Model AI', icon: '●', value: 'Aktif', sub: '● Neural Net v4.2', subColor: '#a78bfa' },
+          { label: 'System Uptime', icon: '●', value: '99.98%', sub: '● Operational', subColor: '#22c55e' },
+          { label: 'Data Sources',  icon: '↗', value: '847',    sub: 'Connected sources', subColor: '#00d4ff' },
+          { label: 'AI Model',      icon: '●', value: 'Active', sub: '● Neural Net v4.2', subColor: '#a78bfa' },
         ].map(s => (
           <div className="ob-status-card" key={s.label}>
             <div className="ob-status-top">
@@ -116,27 +117,73 @@ function LandingPhase({ onConnect, onDashboard }) {
         ))}
       </div>
 
+      {/* Saved session resumption — prominent box */}
+      {savedSession && (
+        <div className="ob-resume-box" style={{
+          width: '100%', maxWidth: 960,
+          marginBottom: 20,
+          background: 'linear-gradient(135deg, rgba(0,212,255,0.06), rgba(139,92,246,0.06))',
+          border: '1px solid rgba(0,212,255,0.25)',
+          borderRadius: 16, padding: '18px 24px',
+          display: 'flex', alignItems: 'center', gap: 18,
+          backdropFilter: 'blur(12px)',
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+            background: 'linear-gradient(135deg, rgba(0,212,255,0.2), rgba(139,92,246,0.2))',
+            border: '1px solid rgba(0,212,255,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#00d4ff', fontSize: '1.2rem',
+          }}>
+            ↩
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', marginBottom: 4 }}>
+              Welcome back, <span style={{ color: '#00d4ff' }}>{savedSession.enterprise}</span>!
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+              Your session is still active — continue directly to the dashboard without re-uploading.
+            </div>
+          </div>
+          <button
+            style={{
+              padding: '10px 22px', borderRadius: 10, flexShrink: 0,
+              background: 'linear-gradient(90deg, #00d4ff, #3b82f6)',
+              color: '#040d1f', fontWeight: 800, fontSize: '0.82rem',
+              border: 'none', cursor: 'pointer',
+              transition: 'filter 0.2s ease',
+              fontFamily: 'inherit',
+            }}
+            onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.1)'}
+            onMouseLeave={e => e.currentTarget.style.filter = 'none'}
+            onClick={() => onDashboard(savedSession.enterprise)}
+          >
+            Continue to Dashboard →
+          </button>
+        </div>
+      )}
+
       <div className="ob-action-grid">
         <div className="ob-action-card">
-          <div className="ob-action-icon" style={{ fontSize: '1.5rem', color: '#00d4ff' }}>
+          <div className="ob-action-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="1.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
           </div>
-          <h3>Hubungkan Sumber Data Cloud</h3>
-          <p>Integrasikan data enterprise melalui koneksi terenkripsi yang aman</p>
-          <button className="ob-btn-cyan" onClick={onConnect}>Mulai Koneksi →</button>
+          <h3>Connect Cloud Data Source</h3>
+          <p>Integrate enterprise data via secure encrypted connection</p>
+          <button className="ob-btn-cyan" onClick={onConnect}>Start Connection →</button>
         </div>
         <div className="ob-action-card">
-          <div className="ob-action-icon" style={{ fontSize: '1.5rem', color: '#8b5cf6' }}>
+          <div className="ob-action-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="1.5"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
           </div>
-          <h3>Ringkasan Sistem</h3>
-          <p>Akses dashboard analitik dengan deteksi ancaman berbasis AI secara real-time</p>
-          <button className="ob-btn-blue" onClick={onDashboard}>Masuk Dashboard →</button>
+          <h3>System Overview</h3>
+          <p>Access the analytics dashboard with real-time AI threat detection</p>
+          <button className="ob-btn-blue" onClick={() => onDashboard('')}>Enter Dashboard →</button>
         </div>
       </div>
 
       <div className="ob-footer-text">
-        Platform Enterprise Terenkripsi · ISO 27001 · SOC 2 Type II
+        Enterprise Encrypted Platform · ISO 27001 · SOC 2 Type II
       </div>
     </div>
   )
@@ -151,21 +198,21 @@ function ConnectPhase({ onBack, onInitialize }) {
 
   return (
     <div className="ob-connect fade-in">
-      <button className="ob-back" onClick={onBack}>← Kembali</button>
+      <button className="ob-back" onClick={onBack}>← Back</button>
       <div className="ob-connect-card">
         <div className="ob-connect-icon">
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="1.5"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
         </div>
-        <h2 className="ob-connect-title">Hubungkan Azure Blob Storage</h2>
-        <p className="ob-connect-sub">Buat koneksi terenkripsi ke Microsoft Azure</p>
+        <h2 className="ob-connect-title">Connect Azure Blob Storage</h2>
+        <p className="ob-connect-sub">Establish an encrypted connection to Microsoft Azure</p>
 
         <div className="ob-form">
           <div className="ob-field">
-            <label>Nama Enterprise</label>
-            <input type="text" placeholder="contoh: GoPay, BRI, OVO..." value={form.enterprise} onChange={e => set('enterprise', e.target.value)} />
+            <label>Enterprise Name</label>
+            <input type="text" placeholder="e.g. GoPay, BRI, OVO..." value={form.enterprise} onChange={e => set('enterprise', e.target.value)} />
           </div>
           <div className="ob-field">
-            <label>Nama Container</label>
+            <label>Container Name</label>
             <input type="text" placeholder="my-enterprise-container" value={form.container} onChange={e => set('container', e.target.value)} />
           </div>
           <div className="ob-field">
@@ -181,18 +228,18 @@ function ConnectPhase({ onBack, onInitialize }) {
           <div className="ob-encrypt-box">
             <span><LockIcon /></span>
             <div>
-              <div className="ob-encrypt-title">Enkripsi End-to-End</div>
-              <div className="ob-encrypt-desc">Semua kredensial dienkripsi menggunakan AES-256 dan disimpan di vault aman. Koneksi menggunakan protokol TLS 1.3.</div>
+              <div className="ob-encrypt-title">End-to-End Encryption</div>
+              <div className="ob-encrypt-desc">All credentials are encrypted using AES-256 and stored in a secure vault. Connection uses TLS 1.3 protocol.</div>
             </div>
           </div>
 
           <button className={`ob-btn-init${canSubmit ? '' : ' disabled'}`} onClick={() => canSubmit && onInitialize(form)} disabled={!canSubmit}>
-            Mulai Koneksi Aman
+            Start Secure Connection
           </button>
         </div>
 
         <div className="ob-secure-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-          <LockIcon /> Koneksi Anda dilindungi dengan enkripsi tingkat tinggi
+          <LockIcon /> Your connection is protected with high-level encryption
         </div>
       </div>
     </div>
@@ -201,15 +248,15 @@ function ConnectPhase({ onBack, onInitialize }) {
 
 /* ── Phase 3: Initializing ───────────────────────────────────── */
 const INIT_STEPS = [
-  '[01] Menghubungkan ke Azure Blob Storage...',
-  '[02] Memverifikasi kredensial akses...',
-  '[03] Mengunduh data transaksi dari container...',
-  '[04] Memvalidasi format dan integritas data...',
-  '[05] Memuat model AI ke memori...',
-  '[06] Menginisialisasi modul analisis risiko...',
-  '[07] Menyiapkan koneksi Azure OpenAI...',
-  '[08] Memuat konfigurasi dashboard...',
-  '[09] Sistem siap digunakan ✓',
+  '[01] Connecting to Azure Blob Storage...',
+  '[02] Verifying access credentials...',
+  '[03] Downloading transaction data from container...',
+  '[04] Validating data format and integrity...',
+  '[05] Loading AI model into memory...',
+  '[06] Initializing risk analysis module...',
+  '[07] Establishing Azure OpenAI connection...',
+  '[08] Loading dashboard configuration...',
+  '[09] System ready ✓',
 ]
 
 function InitializingPhase({ enterprise, onDone }) {
@@ -249,7 +296,7 @@ function InitializingPhase({ enterprise, onDone }) {
         </div>
       </div>
 
-      <h2 className="ob-init-title">Menginisialisasi Sistem</h2>
+      <h2 className="ob-init-title">Initializing System</h2>
       <div className="ob-init-step">
         {logs.length > 0 && (<span>● {logs[logs.length - 1].replace(/\[\d+\] /, '')}</span>)}
       </div>
@@ -267,7 +314,7 @@ function InitializingPhase({ enterprise, onDone }) {
       </div>
 
       <div className="ob-init-footer">
-        Memproses protokol keamanan untuk {enterprise}...
+        Setting up security protocols for <strong style={{ color: '#00d4ff' }}>{enterprise}</strong>...
       </div>
     </div>
   )
@@ -278,22 +325,35 @@ export default function Onboarding({ onEnterDashboard }) {
   const [phase, setPhase] = useState('landing')
   const [enterprise, setEnterprise] = useState('')
 
+  // Load saved session for the resume box
+  const savedSession = (() => {
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY)) } catch { return null }
+  })()
+
   const handleInitialize = useCallback((form) => {
     setEnterprise(form.enterprise)
     setPhase('init')
   }, [])
 
+  const handleDone = useCallback(() => {
+    onEnterDashboard(enterprise)
+  }, [enterprise, onEnterDashboard])
+
   return (
     <div className="ob-root">
       <ParticleCanvas />
       {phase === 'landing' && (
-        <LandingPhase onConnect={() => setPhase('connect')} onDashboard={onEnterDashboard} />
+        <LandingPhase
+          onConnect={() => setPhase('connect')}
+          onDashboard={(name) => onEnterDashboard(name)}
+          savedSession={savedSession}
+        />
       )}
       {phase === 'connect' && (
         <ConnectPhase onBack={() => setPhase('landing')} onInitialize={handleInitialize} />
       )}
       {phase === 'init' && (
-        <InitializingPhase enterprise={enterprise} onDone={onEnterDashboard} />
+        <InitializingPhase enterprise={enterprise} onDone={handleDone} />
       )}
     </div>
   )

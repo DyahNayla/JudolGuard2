@@ -54,13 +54,13 @@ export default function StrategicInsights() {
   return (
     <div className="fade-in">
       <div className="page-header">
-        <h2>💡 Strategic Insights & Solusi</h2>
-        <p>Rubrik 4 (20%) — Temuan strategis, simulasi kebijakan, dan alignment regulasi PPATK/OJK</p>
+        <h2>💡 Strategic Insights</h2>
+        <p>Panduan penggunaan — cara membaca risk findings, simulasi threshold, dan tindakan compliance berdasarkan regulasi PPATK/OJK</p>
       </div>
 
       {/* ── Key Findings — navigable ────────────────────────── */}
       <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-title">🔑 4 Key Findings</div>
+        <div className="card-title">Key Risk Findings</div>
         {/* Finding tabs */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
           {findings.map((f, i) => (
@@ -121,9 +121,9 @@ export default function StrategicInsights() {
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 16, marginBottom: 16 }}>
         {/* ── Policy Simulation ───────────────────────────────── */}
         <div className="card">
-          <div className="card-title">⚖️ Simulasi Dampak Kebijakan Threshold</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-            {data.policy_simulation?.description}
+          <div className="card-title">⚖️ Simulasi: Berapa Akun Terdampak per Threshold?</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 12 }}>
+            Gunakan grafik ini untuk memilih threshold yang sesuai dengan kebijakan perusahaan kamu. Semakin tinggi threshold, semakin sedikit akun yang di-flag namun semakin presisi.
           </div>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={simData} margin={{ top: 4, right: 12, left: -12, bottom: 0 }}>
@@ -155,7 +155,7 @@ export default function StrategicInsights() {
         {/* ── Regulatory alignment ────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="card">
-            <div className="card-title">📋 PPATK Indicators Matched</div>
+            <div className="card-title">📋 Indikator PPATK yang Terdeteksi</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               {ppatk.map((ind, i) => (
                 <div key={i} style={{
@@ -173,7 +173,7 @@ export default function StrategicInsights() {
           </div>
 
           <div className="card">
-            <div className="card-title">🏦 OJK Action Mapping</div>
+            <div className="card-title">🏦 Tindakan OJK per Risk Level</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {Object.entries(ojk).map(([level, action]) => {
                 const colors = { Critical: '#ef4444', High: '#f97316', Medium: '#eab308', Low: '#22c55e' }
@@ -192,7 +192,7 @@ export default function StrategicInsights() {
 
       {/* ── Competitive Advantage ───────────────────────────── */}
       <div className="card">
-        <div className="card-title">🏆 Keunggulan Kompetitif JudolGuard</div>
+        <div className="card-title">⚡ Keunggulan Platform JudolGuard</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
           {advant.map((a, i) => {
             const icons = ['⚡', '💬', '🕸️', '⚙️']

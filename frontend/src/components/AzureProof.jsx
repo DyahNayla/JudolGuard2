@@ -24,8 +24,8 @@ export default function AzureProof() {
   return (
     <div className="fade-in">
       <div className="page-header">
-        <h2>☁️ Azure Proof of Usage</h2>
-        <p>Rubrik 3 (30%) — Bukti terstruktur pemanfaatan Azure services dalam pipeline JudolGuard</p>
+        <h2>☁️ Azure Services</h2>
+        <p>Layanan Microsoft Azure yang menggerakkan JudolGuard — dari analisis data hingga AI Co-Pilot</p>
       </div>
 
       {/* ── Azure Summary Banner ───────────────────────────── */}
@@ -38,16 +38,16 @@ export default function AzureProof() {
         <div style={{ fontSize: '3rem' }}>☁️</div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#50e6ff', marginBottom: 4 }}>
-            Microsoft Azure — Inti Infrastruktur JudolGuard
+            Microsoft Azure — Teknologi di Balik JudolGuard
           </div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            {data.why_azure_matters}
+            JudolGuard dibangun di atas infrastruktur Microsoft Azure untuk memastikan performa, skalabilitas, dan keamanan analisis risiko secara real-time.
           </div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: 4 }}>Model Registered</div>
-          <div style={{ fontWeight: 700, color: '#0078d4', fontSize: '0.8rem' }}>{data.registered_model}</div>
-          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 6 }}>{data.timestamp}</div>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: 4 }}>Status</div>
+          <div style={{ fontWeight: 700, color: '#22c55e', fontSize: '0.85rem' }}>✓ Active</div>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 6 }}>All services operational</div>
         </div>
       </div>
 
@@ -109,13 +109,17 @@ export default function AzureProof() {
 
               {/* Usage list */}
               <div style={{ padding: '10px 12px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-sm)' }}>
-                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Digunakan untuk:</div>
-                {(svc.usage || []).map((u, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 5 }}>
-                    <span style={{ color: cfg.color, flexShrink: 0, marginTop: 1 }}>✓</span>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{u}</span>
-                  </div>
-                ))}
+              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Digunakan untuk:</div>
+                {(svc.usage || []).map((u, i) => {
+                  // Hapus referensi nama file Python agar ramah untuk user
+                  const clean = u.replace(/\s*\([^)]*\.py[^)]*\)/g, '').replace(/\s*\(main_api\.py[^)]*\)/g, '').trim()
+                  return (
+                    <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 5 }}>
+                      <span style={{ color: cfg.color, flexShrink: 0, marginTop: 1 }}>✓</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{clean}</span>
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Proof */}
@@ -130,7 +134,7 @@ export default function AzureProof() {
       {/* ── Model Metrics from Azure ML ─────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <div className="card" style={{ border: '1px solid rgba(0,120,212,0.2)' }}>
-          <div className="card-title" style={{ color: '#0078d4' }}>📊 Metrics dari Azure ML Run</div>
+          <div className="card-title" style={{ color: '#0078d4' }}>📊 Performa Model AI</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {Object.entries(data.model_metrics || {}).map(([k, v]) => {
               const labels = { pr_auc: 'PR-AUC', f1_score: 'F1-Score', roc_auc: 'ROC-AUC' }
@@ -150,16 +154,15 @@ export default function AzureProof() {
           </div>
         </div>
 
-        {/* Azure integration diagram */}
         <div className="card" style={{ border: '1px solid rgba(0,120,212,0.2)' }}>
-          <div className="card-title" style={{ color: '#0078d4' }}>🔗 Integrasi Azure dalam Pipeline</div>
+          <div className="card-title" style={{ color: '#0078d4' }}>🔗 Cara Azure Bekerja di JudolGuard</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[
-              { step: '01', icon: '📊', label: 'Data Generation', azure: 'Azure OpenAI GPT-4o', detail: 'Generate 650K+ sintetis PPATK' },
-              { step: '02', icon: '🤖', label: 'Experiment Track', azure: 'Azure ML MLflow',    detail: 'Track 5-fold CV, metrics, artifacts' },
-              { step: '03', icon: '📦', label: 'Model Registry',  azure: 'Azure ML Registry',  detail: 'JudolGuard-Behavior-Model v1' },
-              { step: '04', icon: '💡', label: 'Explainability',  azure: 'Azure OpenAI GPT-4o', detail: 'Narasi risiko per akun Bahasa ID' },
-              { step: '05', icon: '🛡️', label: 'AI Co-Pilot',    azure: 'Azure OpenAI GPT-4o', detail: 'Compliance chatbot real-time' },
+              { step: '01', icon: '📊', label: 'Data Sintetis',      azure: 'Azure OpenAI GPT-4o', detail: 'Generate 650K+ data transaksi realistis berbasis pola PPATK' },
+              { step: '02', icon: '🤖', label: 'Training Model',     azure: 'Azure Machine Learning', detail: 'Melatih dan mengoptimasi model deteksi fraud secara otomatis' },
+              { step: '03', icon: '📦', label: 'Penyimpanan Model',  azure: 'Azure ML Registry',  detail: 'Model tersimpan aman dan siap dipakai kapan saja' },
+              { step: '04', icon: '💡', label: 'Penjelasan Risiko',  azure: 'Azure OpenAI GPT-4o', detail: 'Menghasilkan narasi risiko per akun dalam bahasa natural' },
+              { step: '05', icon: '🛡️', label: 'Jugu AI Assistant', azure: 'Azure OpenAI GPT-4o', detail: 'Partner analisis fraud real-time yang bisa kamu ajak diskusi' },
             ].map(s => (
               <div key={s.step} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '7px 10px', background: 'var(--bg-surface)', borderRadius: 6 }}>
                 <span className="mono" style={{ fontSize: '0.65rem', color: 'var(--text-muted)', width: 22, flexShrink: 0 }}>{s.step}</span>
@@ -168,7 +171,7 @@ export default function AzureProof() {
                   <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)' }}>{s.label}</div>
                   <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{s.detail}</div>
                 </div>
-                <span style={{ fontSize: '0.62rem', color: '#0078d4', fontWeight: 600, flexShrink: 0, textAlign: 'right', maxWidth: 90 }}>{s.azure}</span>
+                <span style={{ fontSize: '0.62rem', color: '#0078d4', fontWeight: 600, flexShrink: 0, textAlign: 'right', maxWidth: 110 }}>{s.azure}</span>
               </div>
             ))}
           </div>

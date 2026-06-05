@@ -1,11 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
 import { sendCopilotMessage } from '../api'
 
+/* ── SVG Bot Icon (small for bubbles) ─────────────────────────── */
+const BotAvatarSvg = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="9" width="16" height="11" rx="2"/>
+    <circle cx="9" cy="14" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/>
+    <path d="M9 17.5c.7.4 1.5.6 3 .6s2.3-.2 3-.6"/>
+    <path d="M8 9V6a4 4 0 0 1 8 0v3"/>
+    <line x1="12" y1="2" x2="12" y2="4"/>
+  </svg>
+)
+
 const QUICK_PROMPTS = [
-  { label: 'Status fraud terkini',      msg: 'Berikan ringkasan status fraud terkini dalam sistem JudolGuard.' },
+  { label: 'Fraud status terkini',        msg: 'Berikan ringkasan status fraud terkini dalam sistem JudolGuard.' },
   { label: 'Analisis transaksi hari ini', msg: 'Analisis pola transaksi yang terdeteksi hari ini dan berikan insight.' },
-  { label: 'Performa model AI',          msg: 'Bagaimana performa model AI JudolGuard saat ini? Jelaskan metrik utamanya.' },
-  { label: 'Tampilkan semua alert',      msg: 'Tampilkan semua alert aktif dan urutan prioritas penanganannya.' },
+  { label: 'AI model performance',        msg: 'Bagaimana performa model AI JudolGuard saat ini? Jelaskan metrik utamanya.' },
+  { label: 'Active alerts',               msg: 'Tampilkan semua alert aktif dan urutan prioritas penanganannya.' },
 ]
 
 function TypingDots() {
@@ -23,6 +35,27 @@ function TypingDots() {
   )
 }
 
+// Render markdown: **bold**, *italic*, line breaks
+function renderMarkdown(text) {
+  if (!text) return null
+  const lines = text.split('\n')
+  return lines.map((line, li) => {
+    const parts = []
+    const regex = /\*\*([^*]+)\*\*|\*([^*]+)\*/g
+    let last = 0, m
+    while ((m = regex.exec(line)) !== null) {
+      if (m.index > last) parts.push(line.slice(last, m.index))
+      if (m[1] !== undefined)
+        parts.push(<strong key={m.index} style={{ color: '#e2e8f0', fontWeight: 700 }}>{m[1]}</strong>)
+      else if (m[2] !== undefined)
+        parts.push(<em key={m.index} style={{ color: '#93c5fd', fontStyle: 'normal', fontWeight: 600 }}>{m[2]}</em>)
+      last = m.index + m[0].length
+    }
+    if (last < line.length) parts.push(line.slice(last))
+    return <span key={li}>{parts.length ? parts : line}{li < lines.length - 1 && <br />}</span>
+  })
+}
+
 function ChatBubble({ msg }) {
   const isUser = msg.role === 'user'
   return (
@@ -37,12 +70,15 @@ function ChatBubble({ msg }) {
       <div style={{
         width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '0.8rem',
-        background: isUser ? 'rgba(59,130,246,0.2)' : 'rgba(0,120,212,0.15)',
-        border: `1px solid ${isUser ? 'rgba(59,130,246,0.35)' : 'rgba(0,120,212,0.3)'}`,
-        boxShadow: isUser ? 'none' : '0 0 10px rgba(0,120,212,0.2)',
+        background: isUser ? 'rgba(59,130,246,0.2)' : 'linear-gradient(135deg, rgba(0,120,212,0.25), rgba(139,92,246,0.2))',
+        border: `1px solid ${isUser ? 'rgba(59,130,246,0.35)' : 'rgba(0,120,212,0.4)'}`,
+        boxShadow: isUser ? 'none' : '0 0 12px rgba(0,120,212,0.25)',
+        color: isUser ? '#3b82f6' : '#00d4ff',
       }}>
-        {isUser ? '👤' : '🤖'}
+        {isUser
+          ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          : <BotAvatarSvg size={14} />
+        }
       </div>
 
       {/* Bubble */}
@@ -60,7 +96,7 @@ function ChatBubble({ msg }) {
         whiteSpace: 'pre-wrap',
         backdropFilter: 'blur(8px)',
       }}>
-        {msg.loading ? <TypingDots /> : msg.content}
+        {msg.loading ? <TypingDots /> : renderMarkdown(msg.content)}
       </div>
     </div>
   )
@@ -70,7 +106,7 @@ export default function ChatbotPanel({ isOpen, onClose }) {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Halo! Saya **JudolGuard AI Assistant**.\n\nSaya dapat membantu menganalisis pola fraud, memantau ancaman real-time, dan memberikan insight keamanan sistem Anda. Ada yang bisa saya bantu?'
+      content: 'Halo! Aku Jugu 👋\n\nAku di sini buat bantu kamu analisis data fraud secara real-time. Tanya apa aja — dari risk score akun tertentu, pola transaksi yang mencurigakan, sampai langkah compliance yang harus diambil.'
     }
   ])
   const [input, setInput] = useState('')
@@ -127,7 +163,7 @@ export default function ChatbotPanel({ isOpen, onClose }) {
   const clearChat = () => {
     setMessages([{
       role: 'assistant',
-      content: 'Chat dibersihkan. Ada yang ingin Anda tanyakan tentang data JudolGuard?'
+      content: 'Chat cleared. What would you like to ask about JudolGuard data?'
     }])
   }
 
@@ -181,14 +217,14 @@ export default function ChatbotPanel({ isOpen, onClose }) {
               {/* AI Avatar */}
               <div style={{
                 width: 36, height: 36, borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgba(0,120,212,0.3), rgba(59,130,246,0.2))',
-                border: '1px solid rgba(0,120,212,0.4)',
+                background: 'linear-gradient(135deg, rgba(0,120,212,0.3), rgba(139,92,246,0.25))',
+                border: '1px solid rgba(0,120,212,0.45)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1.1rem',
-                boxShadow: '0 0 16px rgba(0,120,212,0.3)',
+                color: '#00d4ff',
+                boxShadow: '0 0 20px rgba(0,120,212,0.35)',
                 position: 'relative',
               }}>
-                🤖
+                <BotAvatarSvg size={18} />
                 {/* Live dot */}
                 <span style={{
                   position: 'absolute', bottom: 1, right: 1,
@@ -200,10 +236,10 @@ export default function ChatbotPanel({ isOpen, onClose }) {
               </div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-                  JudolGuard AI
+                  Jugu
                 </div>
                 <div style={{ fontSize: '0.65rem', color: '#0078d4', fontWeight: 500 }}>
-                  ✦ Fraud Intelligence Assistant
+                  ✶ AI Fraud Analyst
                 </div>
               </div>
             </div>
@@ -324,7 +360,7 @@ export default function ChatbotPanel({ isOpen, onClose }) {
           >
             <textarea
               ref={inputRef}
-              placeholder="Tanya tentang fraud, ancaman, model AI..."
+              placeholder="Ask about fraud, threats, AI model..."
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => {
@@ -384,7 +420,7 @@ export default function ChatbotPanel({ isOpen, onClose }) {
             textAlign: 'center', marginTop: 6,
             fontSize: '0.58rem', color: 'var(--text-muted)',
           }}>
-            Enter = kirim · Shift+Enter = baris baru
+            Enter = send · Shift+Enter = new line
           </div>
         </div>
       </div>

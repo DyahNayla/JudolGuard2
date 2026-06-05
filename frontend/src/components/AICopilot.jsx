@@ -10,6 +10,25 @@ const QUICK_PROMPTS = [
   { icon: '📋', label: 'STR ke PPATK',          msg: 'Akun mana saja yang sudah memenuhi kriteria Suspicious Transaction Report (STR) ke PPATK?' },
 ]
 
+// Render markdown sederhana: **bold**, *italic*, baris baru
+function renderMarkdown(text) {
+  if (!text) return null
+  return text.split('\n').map((line, li) => {
+    // Proses bold dan italic dalam satu baris
+    const parts = []
+    const regex = /\*\*([^*]+)\*\*|\*([^*]+)\*/g
+    let last = 0, m
+    while ((m = regex.exec(line)) !== null) {
+      if (m.index > last) parts.push(line.slice(last, m.index))
+      if (m[1] !== undefined) parts.push(<strong key={m.index} style={{ color: '#e2e8f0', fontWeight: 700 }}>{m[1]}</strong>)
+      else if (m[2] !== undefined) parts.push(<em key={m.index} style={{ color: '#93c5fd', fontStyle: 'normal', fontWeight: 600 }}>{m[2]}</em>)
+      last = m.index + m[0].length
+    }
+    if (last < line.length) parts.push(line.slice(last))
+    return <span key={li}>{parts.length ? parts : line}{li < text.split('\n').length - 1 && <br />}</span>
+  })
+}
+
 function ChatBubble({ msg }) {
   const isUser = msg.role === 'user'
   return (
@@ -24,11 +43,15 @@ function ChatBubble({ msg }) {
       <div style={{
         width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '0.9rem',
-        background: isUser ? 'rgba(59,130,246,0.2)' : 'rgba(0,120,212,0.2)',
-        border: `1px solid ${isUser ? 'rgba(59,130,246,0.3)' : 'rgba(0,120,212,0.3)'}`,
+        background: isUser ? 'rgba(59,130,246,0.18)' : 'linear-gradient(135deg, rgba(0,120,212,0.2), rgba(139,92,246,0.18))',
+        border: `1px solid ${isUser ? 'rgba(59,130,246,0.3)' : 'rgba(0,120,212,0.35)'}`,
+        color: isUser ? '#3b82f6' : '#00d4ff',
+        boxShadow: isUser ? 'none' : '0 0 10px rgba(0,120,212,0.2)',
       }}>
-        {isUser ? '👤' : '🤖'}
+        {isUser
+          ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="9" width="16" height="11" rx="2"/><circle cx="9" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M9 17.5c.7.4 1.5.6 3 .6s2.3-.2 3-.6"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>
+        }
       </div>
 
       {/* Bubble */}
@@ -45,8 +68,10 @@ function ChatBubble({ msg }) {
         color: 'var(--text-primary)',
         whiteSpace: 'pre-wrap',
       }}>
-        {msg.content}
-        {msg.loading && <span className="log-cursor" style={{ background: '#3b82f6' }} />}
+        {msg.loading
+          ? <span className="log-cursor" style={{ background: '#3b82f6' }} />
+          : renderMarkdown(msg.content)
+        }
       </div>
     </div>
   )
@@ -56,7 +81,7 @@ export default function AICopilot() {
   const [messages,   setMessages]   = useState([
     {
       role: 'assistant',
-      content: 'Halo! Saya JudolGuard AI Co-Pilot 🛡️\n\nSaya memiliki akses penuh ke data risiko yang sedang dimuat. Anda bisa tanya:\n• Analisis akun spesifik\n• Pola smurfing yang terdeteksi\n• Rekomendasi tindakan compliance\n• Ringkasan performa sistem\n\nKetik pertanyaan atau pilih quick prompt di bawah 👇'
+      content: 'Halo! Aku Jugu 👋\n\nAku spesialis fraud detection & financial risk analysis — udah ngelihat ribuan pola transaksi mencurigakan. Kamu bisa tanya aku soal:\n• Analisis akun spesifik yang mencurigakan\n• Pola smurfing, QRIS Ghost, Midnight Chaser\n• Langkah compliance yang harus diambil\n• Interpretasi risk score dan artinya buat bisnis kamu\n\nMau mulai dari mana?'
     }
   ])
   const [input,      setInput]      = useState('')
@@ -123,15 +148,15 @@ export default function AICopilot() {
   const clearChat = () => {
     setMessages([{
       role: 'assistant',
-      content: 'Chat dibersihkan. Ada yang ingin Anda tanyakan tentang data JudolGuard?'
+      content: 'Chat dibersihkan. Aku di sini kalau kamu mau analisis lagi — tanya apa aja soal data fraud-nya!'
     }])
   }
 
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)' }}>
       <div className="page-header" style={{ flexShrink: 0 }}>
-        <h2>🤖 AI Compliance Co-Pilot</h2>
-        <p>Chatbot berbasis Azure OpenAI GPT-4o — asisten intelijen compliance dengan konteks data penuh</p>
+        <h2>Jugu — AI Fraud Analyst</h2>
+        <p>Partner analisis risiko kamu — spesialis fraud detection, data science keuangan, dan compliance</p>
       </div>
 
       <div style={{ display: 'flex', gap: 16, flex: 1, overflow: 'hidden' }}>

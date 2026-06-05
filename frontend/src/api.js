@@ -58,11 +58,30 @@ export const predictTransaction = (payload) =>
   })
 
 // ── 7. AI Co-Pilot ────────────────────────────────────────────
-export const sendCopilotMessage = ({ message, account_id, conversation }) =>
-  request('/api/copilot', {
+// Persona context dikirim sebagai history pertama — tidak muncul di UI
+const JUGU_PERSONA = {
+  role: 'assistant',
+  content: 'Aku Jugu, AI analyst spesialis fraud detection dan keuangan digital. Aku berkomunikasi seperti teman — menyebut diri sendiri dengan "aku" secara default. Kalau user pakai kata "gue/lo", aku ikut pakai "gue/lo". Kalau user pakai "saya/anda", aku pakai "saya". Aku fokus pada analisis risiko, deteksi fraud, dan kepatuhan regulasi PPATK/OJK.'
+}
+
+export const sendCopilotMessage = async ({ message, account_id, conversation }) => {
+  // Selalu sisipkan persona context di awal conversation history
+  const enrichedConversation = [JUGU_PERSONA, ...(conversation || [])]
+  const res = await request('/api/copilot', {
     method: 'POST',
-    body: JSON.stringify({ message, account_id, conversation }),
+    body: JSON.stringify({ message, account_id, conversation: enrichedConversation }),
   })
+  // Strip semua template label [CAPS] di mana saja dalam teks
+  // Contoh: [ANALISIS], [INDIKATOR UTAMA], [TINDAKAN], [OVERVIEW], [SOLUSI], dll.
+  if (res?.reply) {
+    res.reply = res.reply
+      .replace(/\[[A-Z][A-Z\s]{1,30}\]\s*/g, '')  // hapus semua [CAPS LABEL]
+      .replace(/\n{3,}/g, '\n\n')                   // rapikan spasi berlebih
+      .trim()
+  }
+  return res
+}
+
 
 // ── 8. ETL Simulate (SSE) ─────────────────────────────────────
 // Mengembalikan EventSource — caller harus listen onmessage + onerror + onclose
