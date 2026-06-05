@@ -15,6 +15,19 @@ const ARCHETYPE_COLORS = {
 
 const FINDING_ICONS = ['🌙', '📱', '🕸️', '🎰']
 
+// Bersihkan teks dari variabel internal backend (snake_case, parenthetical codes)
+const cleanText = (text) => {
+  if (!text) return text
+  return text
+    // Hapus parenthetical teknis: (escalating + heavy_gambler), (micro_smurfer), dll.
+    .replace(/\s*\([a-z][a-z0-9_]*(?:\s*[+,]\s*[a-z][a-z0-9_]*)*\)/g, '')
+    // Konversi snake_case yang tersisa ke Title Case
+    .replace(/\b([a-z]+_[a-z_]+)\b/g, (m) =>
+      m.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    )
+    .trim()
+}
+
 export default function StrategicInsights() {
   const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(true)
@@ -103,15 +116,15 @@ export default function StrategicInsights() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
               <div style={{ padding: '12px 14px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-sm)', borderLeft: `3px solid ${archetypeColor}` }}>
                 <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>📊 Finding</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{selectedFinding.finding}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{cleanText(selectedFinding.finding)}</div>
               </div>
               <div style={{ padding: '12px 14px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #eab308' }}>
                 <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>⚠️ Implikasi</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{selectedFinding.implication}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{cleanText(selectedFinding.implication)}</div>
               </div>
               <div style={{ padding: '12px 14px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #22c55e' }}>
                 <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>✅ Tindakan</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{selectedFinding.action}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{cleanText(selectedFinding.action)}</div>
               </div>
             </div>
           </div>
