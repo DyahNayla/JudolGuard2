@@ -20,7 +20,7 @@ async function request(path, options = {}) {
 }
 
 // ── Health Check ─────────────────────────────────────────────
-export const healthCheck = () => request('/')
+export const healthCheck = () => request('/api/health')
 
 // ── 1. Dashboard Summary ──────────────────────────────────────
 export const getDashboardSummary = () => request('/api/dashboard-summary')
