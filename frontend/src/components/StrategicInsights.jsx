@@ -19,6 +19,8 @@ const FINDING_ICONS = ['🌙', '📱', '🕸️', '🎰']
 const cleanText = (text) => {
   if (!text) return text
   return text
+    // Hapus asterisk (markdown bold/italic)
+    .replace(/\*/g, '')
     // Hapus parenthetical teknis: (escalating + heavy_gambler), (micro_smurfer), dll.
     .replace(/\s*\([a-z][a-z0-9_]*(?:\s*[+,]\s*[a-z][a-z0-9_]*)*\)/g, '')
     // Konversi snake_case yang tersisa ke Title Case
@@ -102,7 +104,7 @@ export default function StrategicInsights() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
               <div style={{ fontWeight: 700, fontSize: '0.92rem', color: archetypeColor, lineHeight: 1.4, flex: 1 }}>
-                {FINDING_ICONS[activeFind]} {selectedFinding.title}
+                {FINDING_ICONS[activeFind]} {cleanText(selectedFinding.title)}
               </div>
               <span style={{
                 padding: '3px 12px', borderRadius: 20, marginLeft: 12, flexShrink: 0,
